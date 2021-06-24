@@ -1,0 +1,6 @@
+# Project exclude paths
+/.gradle/
+/build/
+/subprojects/apigateway/build/
+/subprojects/discovery/build/
+/subprojects/member/build/

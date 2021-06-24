@@ -1,0 +1,41 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.5.10'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.5.10'
+    id 'org.jetbrains.kotlin.plugin.jpa' version '1.5.10'
+    id 'org.springframework.boot' version '2.4.2'
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+    }
+
+    group 'com.salt'
+    version '1.0'
+
+    apply plugin: 'idea'
+    apply plugin: 'kotlin'
+    apply plugin: 'kotlin-spring'
+    apply plugin: 'kotlin-jpa'
+    apply plugin: 'kotlin-kapt'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    sourceCompatibility = 11
+
+    dependencies {
+        implementation "org.jetbrains.kotlin:kotlin-reflect"
+        implementation "org.jetbrains.kotlin:kotlin-stdlib"
+        implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+        implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    }
+}
+
+bootJar { enabled = false}
+jar { enabled = true }
