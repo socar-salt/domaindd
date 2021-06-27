@@ -13,11 +13,20 @@ spring:
             preLogger: true
             postLogger: true
       routes:
-        - id: user-service
+        - id: member-service
           uri: lb://MEMBER
           predicates:
 #            - Path=/api/**
-            - Path=/**
+            - Path=/members/**
+        - id: member-service
+          uri: lb://MEMBER
+          predicates:
+            - Path=/member/login
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/member/(?<segment>.*), /$\{segment}
+
 
 eureka:
   client:
