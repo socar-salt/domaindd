@@ -7,7 +7,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 
 @Configuration
@@ -21,23 +20,29 @@ class WebSecurity(
     @Throws(Exception::class)
     override fun configure(http: HttpSecurity) {
         http.csrf().disable()
-        http.authorizeRequests().antMatchers("/members/**").permitAll()
-        http.headers().frameOptions().disable()
+//        http.authorizeRequests().antMatchers("/members/**").permitAll();
+        http.authorizeRequests().antMatchers("/actuator/**").permitAll()
+        http.authorizeRequests().antMatchers("/h2-console/**").permitAll()
+        http.authorizeRequests().antMatchers("/**")
+            .hasIpAddress(env.getProperty("gateway.ip"))
+            .and()
+            .addFilter(authenticationFilter())
+
+        http.headers().frameOptions().disable()  // h2
     }
 
-    //        authenticationFilter.setAuthenticationManager(authenticationManager());
-    @get:Throws(Exception::class)
-    private val authenticationFilter: AuthenticationFilter
-        get() =//        authenticationFilter.setAuthenticationManager(authenticationManager());
-            AuthenticationFilter(
-                authenticationManager(), memberService,
-                env
-            )
+    private fun authenticationFilter(): AuthenticationFilter {
+        return AuthenticationFilter(
+            authenticationManager(),
+            memberService,
+            env
+        )
+    }
 
-    // select pwd from users where email=?
+    // select pwd from member where email = ?
     // db_pwd(encrypted) == input_pwd(encrypted)
     @Throws(Exception::class)
     override fun configure(auth: AuthenticationManagerBuilder) {
-        auth.userDetailsService<UserDetailsService>(memberService).passwordEncoder(bCryptPasswordEncoder)
+        auth.userDetailsService(memberService).passwordEncoder(bCryptPasswordEncoder)
     }
 }

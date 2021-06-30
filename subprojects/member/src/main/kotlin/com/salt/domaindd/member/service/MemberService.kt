@@ -22,15 +22,11 @@ class MemberService(
 ): UserDetailsService {
 
     fun createMember(requestMember: RequestMember): MemberDto {
-        requestMember.memberId = UUID.randomUUID().toString()
         val member = Member.newOf(requestMember)
         member.encryptedPwd = passwordEncoder.encode(requestMember.pwd)
+        member.memberId = UUID.randomUUID().toString()
         memberRepository.save(member)
-        return MemberDto(
-            email = requestMember.email,
-            name = requestMember.name,
-            pwd = requestMember.pwd
-        )
+        return MemberDto.newOf(member)
     }
 
     fun getMemberByAll(): MutableIterable<Member> {
@@ -38,13 +34,13 @@ class MemberService(
     }
 
     fun getMemberDetailByMemberId(memberId: String): MemberDto {
-        val member: Member = memberRepository.findByMemberId(memberId) ?: throw UsernameNotFoundException("User not found")
-        return ModelMapper().map(member, MemberDto::class.java)
+        val member: Member = memberRepository.findByMemberId(memberId) ?: throw UsernameNotFoundException("Member not found")
+        return MemberDto.newOf(member)
     }
 
     fun getMemberDetailsByEmail(email: String): MemberDto {
         val member: Member = memberRepository.findByEmail(email) ?: throw UsernameNotFoundException(email)
-        return ModelMapper().map(member, MemberDto::class.java)
+        return MemberDto.newOf(member)
     }
 
     override fun loadUserByUsername(username: String): UserDetails {
@@ -52,7 +48,7 @@ class MemberService(
         return User(
             member.email, member.encryptedPwd,
             true, true, true, true,
-            ArrayList<GrantedAuthority>()
+            ArrayList<GrantedAuthority>() // 로그인 되었을 때 해당 계정에 부여된 권한들
         )
     }
 }

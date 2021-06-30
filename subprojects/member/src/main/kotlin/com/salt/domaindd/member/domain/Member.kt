@@ -12,15 +12,15 @@ class Member(
     @Column(nullable = false, length = 50)
     val name: String,
 
-    @Column(nullable = false, unique = true)
-    val memberId: String,
-
     @Transient
     val pwd: String
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0
+
+    @Column(nullable = false, unique = true)
+    var memberId: String? = null
 
     @Column(nullable = false, unique = true)
     var encryptedPwd: String? = null
@@ -30,8 +30,7 @@ class Member(
             return Member(
                 email = requestMember.email,
                 name = requestMember.name,
-                pwd = requestMember.pwd,
-                memberId = requestMember.memberId ?: ""
+                pwd = requestMember.pwd
             )
         }
     }

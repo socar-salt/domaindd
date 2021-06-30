@@ -16,16 +16,28 @@ spring:
         - id: member-service
           uri: lb://MEMBER
           predicates:
-#            - Path=/api/**
-            - Path=/members/**
+            - Path=/member-service/login
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie # POST로 전달되는 데이터는 매번 새롭게 전달받은 데이터로 인식
+            - RewritePath=/member-service/(?<segment>.*), /$\{segment}
         - id: member-service
           uri: lb://MEMBER
           predicates:
-            - Path=/member/login
+            - Path=/member-service/members
             - Method=POST
           filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/member/(?<segment>.*), /$\{segment}
+            - RemoveRequestHeader=Cookie # POST로 전달되는 데이터는 매번 새롭게 전달받은 데이터로 인식
+            - RewritePath=/member-service/(?<segment>.*), /$\{segment}
+        - id: member-service
+          uri: lb://MEMBER
+          predicates:
+            - Path=/member-service/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie # POST로 전달되는 데이터는 매번 새롭게 전달받은 데이터로 인식
+            - RewritePath=/member-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
 
 
 eureka:
@@ -35,4 +47,6 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka
 
+token:
+  secret: socar
 

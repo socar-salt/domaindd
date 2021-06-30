@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
+import org.slf4j.LoggerFactory
 
 
 class AuthenticationFilter(
@@ -25,6 +26,8 @@ class AuthenticationFilter(
     private var memberService: MemberService,
     private var env: Environment
 ): UsernamePasswordAuthenticationFilter() {
+
+    val log = LoggerFactory.getLogger(javaClass)
 
     init {
         super.setAuthenticationManager(authenticationManager)
@@ -37,11 +40,13 @@ class AuthenticationFilter(
     ): Authentication {
         return try {
             val creds: RequestLogin = ObjectMapper().readValue(request.inputStream, RequestLogin::class.java)
-            authenticationManager.authenticate(
+
+            // User정보를 SpringSecurity에서 사용할 수 있는 형태의 인증토큰으로 변환
+          authenticationManager.authenticate(
                 UsernamePasswordAuthenticationToken(
                     creds.email,
-                    creds.password,
-                    ArrayList()
+                    creds.pwd,
+                    ArrayList() // 어떤 권한을 가질 것인지...
                 )
             )
         } catch (e: IOException) {
@@ -49,6 +54,9 @@ class AuthenticationFilter(
         }
     }
 
+    /**
+     * 인증에 성공하였을 경우 처리작업을 할 것인지, 어느 권한을 부여할 것인지
+     */
     @Throws(IOException::class, ServletException::class)
     override fun successfulAuthentication(
         request: HttpServletRequest,
@@ -58,10 +66,12 @@ class AuthenticationFilter(
     ) {
         val userName = (authResult.principal as User).username
         val userDetails = memberService.getMemberDetailsByEmail(userName)
+
+        // jwt Build
         val token: String = Jwts.builder()
             .setSubject(userDetails.memberId)
             .setExpiration(Date(System.currentTimeMillis() + env.getProperty("token.expiration_time").toLong()))
-            .signWith(SignatureAlgorithm.HS512, env.getProperty("token.secret"))
+            .signWith(SignatureAlgorithm.HS512, env.getProperty("token.secret")) // 키 알고리즘 + 키 조합
             .compact()
         response.addHeader("token", token)
         response.addHeader("userId", userDetails.memberId)

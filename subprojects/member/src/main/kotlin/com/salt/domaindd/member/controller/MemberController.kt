@@ -37,9 +37,11 @@ class MemberController(
         val result = ArrayList<ResponseMember>()
 
         memberList.forEach {
-            result.add(ModelMapper().map(
-                it,
-                ResponseMember::class.java
+            result.add(
+                ResponseMember(
+                email = it.email,
+                name = it.name,
+                memberId = it.memberId
             ))
         }
         return ResponseEntity.status(HttpStatus.OK).body(result)
